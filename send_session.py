@@ -150,7 +150,25 @@ def main():
     now = datetime.now(VN_TZ)
 
     image_buf = draw_grid_image(marked, session_id, now)
-    caption = f"🎲 Phiên #{session_id}\nÔ trúng: {', '.join(map(str, marked))}"
+
+    # ====== TEXT MẪU - BẠN SỬA LẠI Ở ĐÂY THEO Ý MÌNH ======
+    # Mỗi dòng dưới đây sẽ hiện thành 1 dòng riêng trong caption Telegram.
+    # Muốn thêm dòng: thêm 1 dòng f"..." mới vào list.
+    # Muốn xoá dòng: xoá dòng đó khỏi list.
+    extra_lines = [
+        "👉 Chúc bạn may mắn!",
+        "👉 Admin: @thaotranggroup",
+        "📢 Nhận khuyến măi mỗi ngày.",
+        "📢 Theo dõi kênh để không bỏ lỡ phiên mới.",
+    ]
+    # ==========================================================
+
+    caption_lines = [
+        f"🎲 Phiên #{session_id}",
+        f"Ô trúng: {', '.join(map(str, marked))}",
+        *extra_lines,
+    ]
+    caption = "\n".join(caption_lines)
 
     send_photo_telegram(image_buf, caption)
 
