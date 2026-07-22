@@ -48,65 +48,81 @@ def save_history(history):
 
 
 def draw_grid_image(marked_cells, session_id, now):
-    cell_size = 100
+    cell_size = 130
+    gap = 10
     padding = 20
     header_height = 60
-    grid_w = cell_size * GRID_COLS
-    grid_h = cell_size * GRID_ROWS
+    grid_w = cell_size * GRID_COLS + gap * (GRID_COLS - 1)
+    grid_h = cell_size * GRID_ROWS + gap * (GRID_ROWS - 1)
     width = grid_w + padding * 2
     height = grid_h + padding * 2 + header_height
 
     bg_color = (24, 26, 32)
-    cell_empty = (45, 48, 58)
-    cell_marked = (255, 196, 0)
-    line_color = (70, 74, 88)
+    card_color = (76, 110, 219)       # xanh dương (thẻ chưa trúng)
+    card_shadow = (55, 82, 173)       # xanh đậm hơn (đổ bóng đáy thẻ)
+    marked_color = (255, 178, 26)     # cam/vàng (thẻ trúng)
+    marked_shadow = (204, 133, 0)
     text_color = (235, 235, 235)
-    marked_text_color = (24, 26, 32)
+    q_color = (110, 140, 230)         # màu dấu ? mờ trên nền xanh
+    marked_text_color = (40, 24, 0)
 
     img = Image.new("RGB", (width, height), bg_color)
     draw = ImageDraw.Draw(img)
 
-    cell_font_size = int(cell_size * 0.32)
     try:
         font_header = ImageFont.truetype(
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26
         )
-        font_cell = ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", cell_font_size
+        font_q = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", int(cell_size * 0.5)
+        )
+        font_num = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", int(cell_size * 0.4)
         )
     except Exception:
-        font_header = ImageFont.load_default()
-        font_cell = ImageFont.load_default()
+        font_header = font_q = font_num = ImageFont.load_default()
 
     header_text = f"Phien #{session_id}  -  {now.strftime('%H:%M:%S %d/%m/%Y')}"
     bbox = draw.textbbox((0, 0), header_text, font=font_header)
     text_w = bbox[2] - bbox[0]
     draw.text(((width - text_w) / 2, 15), header_text, fill=text_color, font=font_header)
 
+    # đánh số 1..5 cho các ô trúng theo thứ tự ngẫu nhiên (không phải theo vị trí ô)
+    order_map = {cell: idx + 1 for idx, cell in enumerate(marked_cells)}
+
     grid_top = header_height
+    shadow_h = 10
     for row in range(GRID_ROWS):
         for col in range(GRID_COLS):
             cell_num = row * GRID_COLS + col + 1
-            x0 = padding + col * cell_size
-            y0 = grid_top + row * cell_size
+            x0 = padding + col * (cell_size + gap)
+            y0 = grid_top + row * (cell_size + gap)
             x1 = x0 + cell_size
             y1 = y0 + cell_size
 
-            is_marked = cell_num in marked_cells
-            fill = cell_marked if is_marked else cell_empty
-            draw.rectangle([x0, y0, x1, y1], fill=fill, outline=line_color, width=3)
+            is_marked = cell_num in order_map
+            base = marked_color if is_marked else card_color
+            shadow = marked_shadow if is_marked else card_shadow
 
-            label = str(cell_num)
-            lbbox = draw.textbbox((0, 0), label, font=font_cell)
+            # đổ bóng đáy thẻ
+            draw.rounded_rectangle([x0, y0 + shadow_h, x1, y1 + shadow_h], radius=18, fill=shadow)
+            # thân thẻ
+            draw.rounded_rectangle([x0, y0, x1, y1 - shadow_h], radius=18, fill=base)
+
+            if is_marked:
+                label = str(order_map[cell_num])
+                font = font_num
+                fill = marked_text_color
+            else:
+                label = "?"
+                font = font_q
+                fill = q_color
+
+            lbbox = draw.textbbox((0, 0), label, font=font)
             lw, lh = lbbox[2] - lbbox[0], lbbox[3] - lbbox[1]
             tx = x0 + (cell_size - lw) / 2
-            ty = y0 + (cell_size - lh) / 2 - lbbox[1]
-            draw.text(
-                (tx, ty),
-                label,
-                fill=(marked_text_color if is_marked else text_color),
-                font=font_cell,
-            )
+            ty = y0 + (cell_size - shadow_h - lh) / 2 - lbbox[1]
+            draw.text((tx, ty), label, fill=fill, font=font)
 
     buf = BytesIO()
     img.save(buf, format="PNG")
