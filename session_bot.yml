@@ -1,0 +1,41 @@
+name: Send Session Grid
+
+on:
+  schedule:
+    # Chạy mỗi 30 phút (để nằm trong giới hạn 2,000 phút/tháng của repo Private free).
+    # Lưu ý: GitHub Actions cron có thể trễ vài phút vào giờ cao điểm,
+    # đây là giới hạn của GitHub (bản free), không phải lỗi code.
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}  # cho phép bấm "Run workflow" để chạy thử thủ công
+
+permissions:
+  contents: write  # cần quyền ghi để commit lại history.json
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send session
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python send_session.py
+
+      - name: Commit history.json
+        run: |
+          git config user.name "session-bot"
+          git config user.email "session-bot@users.noreply.github.com"
+          git add history.json
+          git diff --cached --quiet || git commit -m "Update session history"
+          git push
