@@ -1,3 +1,4 @@
+[![Send Session Grid](https://github.com/92lotterry-art/session-grid-bot/actions/workflows/session_bot.yml/badge.svg)](https://github.com/92lotterry-art/session-grid-bot/actions/workflows/session_bot.yml)
 # Session Grid Bot — chạy free bằng GitHub Actions (không cần server/PC)
 
 Bot vẽ lưới 5x5, mỗi 30 phút random đánh dấu 5 ô, gửi ảnh vào nhóm Telegram.
