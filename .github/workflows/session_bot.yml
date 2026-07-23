@@ -5,7 +5,7 @@ on:
     # Chạy mỗi 30 phút (để nằm trong giới hạn 2,000 phút/tháng của repo Private free).
     # Lưu ý: GitHub Actions cron có thể trễ vài phút vào giờ cao điểm,
     # đây là giới hạn của GitHub (bản free), không phải lỗi code.
-    - cron: "*/30 * * * *"
+    - cron: "7,37 * * * *"
   workflow_dispatch: {}  # cho phép bấm "Run workflow" để chạy thử thủ công
 
 permissions:
